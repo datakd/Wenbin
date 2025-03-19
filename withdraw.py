@@ -11,7 +11,7 @@ import numpy as np
 
 
 
-date_to_convert = datetime(2025,3, 18)
+date_to_convert = datetime(2025,3, 14)
 timestamp = int(date_to_convert.timestamp() * 1000)
 
 url = "https://login-p10.xiaoshouyi.com/auc/oauth2/token"
@@ -29,7 +29,10 @@ content = response.json()
 ac_token = content["access_token"]
 
 
-
+#####
+##2904963933786093 寄後電訪
+##3028348436713387 每日K大
+####
 '''
 select from Tasks withdraw 
 '''
@@ -46,9 +49,9 @@ while True:
     data = {
         "xoql": f'''
         select id,name,customItem10__c, customItem3__c,workflowStageName,approvalStatus,customItem8__c,customItem206__c
-        ,customItem121__c,customItem65__c, customItem42__c.name 客戶關係連絡人編號
+        ,customItem121__c,customItem65__c, customItem42__c.name 客戶關係連絡人編號,entityType
         from customEntity14__c
-        where entityType = '3028348436713387' and createdBy = '3628254003531750' 
+        where entityType in ('2904963933786093','3028348436713387') and createdBy = '3628254003531750' 
         and createdAt >= {timestamp} 
         ''',
         "batchCount": 2000,

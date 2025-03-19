@@ -1,3 +1,4 @@
+
 import pandas as pd
 import json
 import requests
@@ -15,8 +16,8 @@ payload = {
     "client_id": "a037eace03d67c0f77a26e74edcde9a1",
     "client_secret": "c50f98b7f5c5d362d1bf6eb9d3447692",
     "redirect_uri": "https://crm-p10.xiaoshouyi.com",
-    "username": "11020856@twkd.com",
-    "password": "11020856zAOdbVRj"
+    "username": "tw0002@twkd.com.cn",
+    "password": "Ywb314775877MoylQRYl"
 }
 
 response = requests.post(url, data=payload)
@@ -30,19 +31,31 @@ select from user
 url_2 = "https://api-p10.xiaoshouyi.com/rest/data/v2.0/query/xoqlScroll"
 headers = {
     "Authorization": f"Bearer {ac_token}",
-    "Content-Type":"application/x-www-form-urlencoded"
-    # Replace withyour actual access token
-} 
-data = {
-    "xoql": "select id, name, dimDepart from user",
-    #"xoql": "insert into contact(contactName, phone, email) values('貴夫人', '0912345678', 'kkdd@gmail.com')"
-    "batchCount": 2000
+    "Content-Type": "application/x-www-form-urlencoded"
 }
-response2 = requests.post(url_2, headers=headers, data = data)
-ownerId = response2.json()
-print(ownerId)
-user_df = pd.json_normalize(ownerId["data"]["records"])  
-user_df[user_df['name']=='翁偉倫']
+
+queryLocator = ''
+user_df = pd.DataFrame()
+
+while True:
+    data = {
+        "xoql": "select id, name, dimDepart from user",
+        "batchCount": 2000,
+        "queryLocator": queryLocator
+    }
+    
+    response = requests.post(url_2, headers=headers, data=data)
+    result = response.json()
+
+    batch_df = pd.DataFrame(result["data"]["records"])
+    user_df = pd.concat([user_df, batch_df], ignore_index=True, sort=False)
+
+    if not result['queryLocator']:
+        break
+    queryLocator = result['queryLocator']
+
+# 篩選特定名字
+user_df[user_df['name'] == '張淇雁']
 
 '''
 select from 發放明細
@@ -56,7 +69,7 @@ headers = {
 queryLocator = ''
 gift_df = pd.DataFrame()
 
-date_to_convert = datetime(2024,12, 1)
+date_to_convert = datetime(2025,3, 1)
 # # Calculate the Unix timestamp in milliseconds
 timestamp = int(date_to_convert.timestamp() * 1000)
 
@@ -103,9 +116,6 @@ headers = {
 queryLocator = ''
 Tasks_df = pd.DataFrame()
 
-date_to_convert = datetime(2024,12, 1)
-# # Calculate the Unix timestamp in milliseconds
-timestamp = int(date_to_convert.timestamp() * 1000)
 
 while True:
     data = {
@@ -188,8 +198,38 @@ Sales_list['customItem9__c']= Sales_list['customItem9__c'].astype(str)
 Sales_list = Sales_list[Sales_list['預估通數']!='']
 Sales_list['預估通數']= Sales_list['預估通數'].astype(int)
 Sales_list = Sales_list[Sales_list['預估通數']>0]
-Sales_list1 = Sales_list.loc[Sales_list['電訪人員類型'].str.contains("未接")]
+#Sales_list1 = Sales_list.loc[Sales_list['電訪人員類型'].str.contains("未接")]
 #Sales_list1 = Sales_list1.loc[Sales_list1['customItem9__c'].str.contains("一般",na=False)]
+
+
+
+
+#指定人員指定交辦數量
+
+target_sales = {
+    '葉子瑄': 140,
+    '黃譯萱': 100,
+    '吳承遠': 140,
+    '黃紹誠': 140,
+    '劉冠宏': 140,
+    '李瑜瑩': 80,
+    '張淇雁': 80,
+    '賴盈豪': 60
+}
+
+# 從 Sales_list 中篩選符合電訪人員名字的行（模糊匹配名字）
+Sales_list = Sales_list[Sales_list['電訪人員'].str.extract(r'(' + '|'.join(target_sales.keys()) + ')')[0].notnull()].copy()
+
+# 根據名字對應的數字更新預估通數
+Sales_list['預估通數'] = Sales_list['電訪人員'].apply(
+    lambda name: next((num for key, num in target_sales.items() if key in name), None)
+)
+
+
+
+
+
+
 
 
 # Tasks_df = Tasks_df.loc[~Tasks_df['區域代碼'].str.contains("Z")]
@@ -233,9 +273,56 @@ Sales_list1 = Sales_list.loc[Sales_list['電訪人員類型'].str.contains("未�
 # K_invite['customItem120__c'] = today
 # Tasks_df1 = Tasks_df[~Tasks_df['customItem42__c'].isin(K_invite['customItem42__c'].drop_duplicates())]
 
-balanced_list = np.tile(Sales_list1['電訪人員'], -(-len(Tasks_df) // len(Sales_list1)))  # Repeat and cover all rows
-np.random.shuffle(balanced_list)  # Shuffle for randomness
-Tasks_df['電訪人員'] = balanced_list[:len(Tasks_df)]
+
+
+#########均分
+# balanced_list = np.tile(Sales_list['電訪人員'], -(-len(Tasks_df) // len(Sales_list)))  # Repeat and cover all rows
+# np.random.shuffle(balanced_list)  # Shuffle for randomness
+# Tasks_df['電訪人員'] = balanced_list[:len(Tasks_df)]
+# K_invite = pd.merge(Tasks_df, user_df, left_on = '電訪人員', right_on = 'name', how = 'left')
+# K_invite = K_invite.rename(columns={'dimDepart_x':'dimDepart','id_y':'customItem10__c'})
+# K_invite['customItem120__c'] = today
+# Tasks_df1 = Tasks_df[~Tasks_df['customItem42__c'].isin(K_invite['customItem42__c'].drop_duplicates())]
+# K_invite['customItem10__c'].value_counts()
+########
+total_estimated_calls = Sales_list['預估通數'].sum()
+
+# 计算每个电访人员的任务分配比例
+Sales_list['分配比例'] = Sales_list['預估通數'] / total_estimated_calls
+# 计算每个电访人员的初步分配任务数（四舍五入）
+Sales_list['分配任务数'] = (Sales_list['分配比例'] * len(Tasks_df)).round().astype(int)
+# 计算当前分配任务总数
+total_assigned = Sales_list['分配任务数'].sum()
+# 计算需要调整的任务数
+task_diff = len(Tasks_df) - total_assigned
+
+# 调整任务数以确保总数为 3300
+if task_diff > 0:
+    # 任务数不足，增加任务数，优先分配给预估通数较大的人员
+    for _ in range(task_diff):
+        idx = Sales_list['預估通數'].idxmax()  # 找到预估通数最多的人员
+        Sales_list.loc[idx, '分配任务数'] += 1
+elif task_diff < 0:
+    # 任务数超出，需要减少任务数，优先减少预估通数较少的人员
+    for _ in range(abs(task_diff)):
+        idx = Sales_list['預估通數'].idxmin()  # 找到预估通数最少的人员
+        Sales_list.loc[idx, '分配任务数'] -= 1
+
+# 按照分配任务数拆分任务数据
+assigned_tasks = []
+start_idx = 0
+
+for _, row in Sales_list.iterrows():
+    end_idx = start_idx + row['分配任务数']
+    subset = Tasks_df.iloc[start_idx:end_idx].copy()
+    subset['電訪人員'] = row['電訪人員']
+    assigned_tasks.append(subset)
+    start_idx = end_idx
+
+# 合并所有任务数据
+Tasks_df = pd.concat(assigned_tasks, ignore_index=True)
+balanced_list = np.array(Tasks_df['電訪人員'])
+
 K_invite = pd.merge(Tasks_df, user_df, left_on = '電訪人員', right_on = 'name', how = 'left')
 K_invite = K_invite.rename(columns={'dimDepart_x':'dimDepart','id_y':'customItem10__c'})
 K_invite['customItem120__c'] = today
@@ -269,6 +356,7 @@ K_invite_task = K_invite_task[['customItem42__c','entityType','customItem120__c'
 
 K_invite_task = K_invite_task.astype(str)
 K_invite_task['customItem10__c'].value_counts()
+
 
 
 ##產品顧問
@@ -487,6 +575,19 @@ for index, row in data_ids_df.iterrows():
 # Wait for all threads to finish
 for thread in threads:
     thread.join() 
+    
+    
+    
+    
+    
+###########
+    
+    
+    
+    
+    
+    
+    
     
 '''
 select from Tasks withdraw 

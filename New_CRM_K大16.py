@@ -306,30 +306,6 @@ tracking1 = tracking1[(tracking1['無效電訪類型'].str.contains("未接|接�
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 經營開發 = pd.read_excel("/Users/wenbinyang/Library/Containers/com.tencent.WeWorkMac/Data/Documents/Profiles/D43DB696294C275B6EDADD711B526B65/Caches/Files/2025-02/66b7ae3577fb7ecdaf9af1f7361534d9/K大名單監控具體數據_偉倫.xlsx", dtype='object')
 經營開發 = 經營開發[~經營開發['name'].isin(Pass_user)]
 經營開發 = 經營開發[經營開發['目標客戶類型'].str.contains('|'.join(target), na=False)]
