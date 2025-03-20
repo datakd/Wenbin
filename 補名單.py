@@ -15,7 +15,7 @@ K_invite6 = pd.read_excel("/Users/wenbinyang/Desktop/job/last_K_invite.xlsx")
 today = datetime.now()
 
 target_sales = {
-    '葉子瑄': 140
+    '楊文斌': 1
     # ,'黃譯萱': 100
     # ,'吳承遠': 140
     # ,'黃紹誠': 140
@@ -164,8 +164,12 @@ K_invite6.to_excel("/Users/wenbinyang/Desktop/job/last_K_invite.xlsx",index=Fals
 
 
 
+# Google Sheet Authentication and Setup
+gc = pygsheets.authorize(service_file='/Users/wenbinyang/Downloads/analog-artifact-448608-f6-d46b6050e974.json')
+spreadsheet = gc.open_by_key('1btNuZ_l_ZJyAtFBh2-CJJK3id6sc_RKdFYfOIQA6q1Q')
 
-### 二面
+
+# ### 二面 (Second Interview)
 invited_people1 = []
 
 for index, row in Sales_list3.iterrows():
@@ -175,21 +179,24 @@ for index, row in Sales_list3.iterrows():
     # Extend the invited_people list with 'person' repeated 'count' times
     if not pd.isna(count):
         invited_people1.extend([person] * int(count))
+
 invited_people1 = pd.DataFrame({'客服主任': invited_people1})
-invited_people1 = invited_people1.sample(frac=1).reset_index(drop=True)
+invited_people1 = invited_people1.sample(frac=1).reset_index(drop=True)  # Shuffle
 
 invited_people1 = pd.concat([invited_people1])
 invited_people1.reset_index(drop=True, inplace=True)
 K_invite6.reset_index(drop=True, inplace=True)
-K_invite_二面 = pd.concat([K_invite6,invited_people1],axis=1)
-#K_invite_二面 = K_invite_二面[:200]
-# K_invite_二面['客服主任'] = '＃郭明傑'
+K_invite_二面 = pd.concat([K_invite6, invited_people1], axis=1)
+# K_invite_二面 = K_invite_二面[:200] #  limit if needed
+# K_invite_二面['客服主任'] = '＃郭明傑'  # Assign a specific person if needed.
 
-K_invite_二面 = K_invite_二面.rename(columns={'客服主任':'邀約人'})
+K_invite_二面 = K_invite_二面.rename(columns={'客服主任': '邀約人'})
 K_invite_二面 = K_invite_二面[K_invite_二面['邀約人'].notnull()]
-K_invite_二面.rename(columns={'資料區域群組名稱': '資料區域','公司簡稱':'公司全名','公司代號_x':'公司代號','客戶關係連絡人GS':'客戶關係聯絡人編號'}, inplace=True)
+K_invite_二面.rename(columns={'資料區域群組名稱': '資料區域', '公司簡稱': '公司全名', '公司代號_x': '公司代號',
+                          '客戶關係連絡人GS': '客戶關係聯絡人編號'}, inplace=True)
 K_invite6 = K_invite6[~K_invite6['連絡人代號'].isin(K_invite_二面['連絡人代號'].drop_duplicates())]
-K_invite_二面 = K_invite_二面[['邀約人','資料區域','公司代號','客戶關係聯絡人編號','公司全名','連絡人','職務類別','手機號碼','公司電話','LINEID']]
+K_invite_二面 = K_invite_二面[
+    ['邀約人', '資料區域', '公司代號', '客戶關係聯絡人編號', '公司全名', '連絡人', '職務類別', '手機號碼', '公司電話', 'LINEID']]
 
 today = datetime.now()
 K_invite_二面 = K_invite_二面.replace(np.nan, '', regex=True)
@@ -197,92 +204,121 @@ K_invite_二面['公司電話'] = "'" + K_invite_二面['公司電話']
 K_invite_二面['手機號碼'] = "'" + K_invite_二面['手機號碼']
 K_invite_二面['LINEID'] = "'" + K_invite_二面['LINEID']
 
-new_worksheet_title = today.strftime('%Y%m%d')    ###改自動日期
-new_worksheet = spreadsheet.add_worksheet(new_worksheet_title ,cols = 14, index=0)
-new_worksheet.set_dataframe(pd.DataFrame(K_invite_二面), start='A1' , end='O1')
-new_worksheet.frozen_rows = 1
+new_worksheet_title = today.strftime('%Y%m%d')  ###改自動日期
 
-CELL_RANGE = 'K1' 
+# Check if the worksheet already exists
+try:
+    new_worksheet = spreadsheet.worksheet_by_title(new_worksheet_title)
+    # Worksheet exists, append data
+    existing_data = new_worksheet.get_all_values(include_tailing_empty_rows=False, include_tailing_empty=False, returnas='matrix')
+    last_row = len(existing_data)
 
-new_worksheet.update_value(CELL_RANGE, "是否邀約K大\n⭐(必填)")
-
-new_worksheet.set_data_validation(start ="K2", end = "K2000",
-                        condition_type="ONE_OF_LIST",
-                        condition_values=['成功邀約K大', '客戶拒絕邀約(開車、開會、改天)','未接(語音信箱、通話中、忙線中)',
-                                          '號碼無效(空號)','號碼無效(非本人)','客戶退休/公司停業/轉職'],
-                        inputMessage = "請選擇是或否", #error message
-                        strict = True, #reject invalid information
-                        showCustomUi = True) #drop down list
-
-CELL_RANGE = 'L1' 
-
-new_worksheet.update_value(CELL_RANGE, "即時通")
-
-new_worksheet.set_data_validation(start ="L2", end = "L2000",
-                        condition_type="ONE_OF_LIST",
-                        condition_values=['即時通'],
-                        inputMessage = "請選擇是否為即時通", #error message
-                        strict = True, #reject invalid information
-                        showCustomUi = True) #drop down list
+    # Convert DataFrame to list of lists, handling NaN values
+    data_to_append = K_invite_二面.fillna('').values.tolist()
+    new_worksheet.insert_rows(row=last_row, number=len(data_to_append), values=data_to_append)
 
 
-CELL_RANGE = 'M1' 
+except pygsheets.WorksheetNotFound:
+    # Worksheet doesn't exist, create it
+    new_worksheet = spreadsheet.add_worksheet(new_worksheet_title, cols=14, index=0)
+    new_worksheet.set_dataframe(pd.DataFrame(K_invite_二面), start='A1', end='O1')
+    new_worksheet.frozen_rows = 1
 
-new_worksheet.update_value(CELL_RANGE, "K大邀約日期時間\n⭐若成功邀約(必填)\n範例：2024-04-01 09:00(日期跟時間中間要空一格)")
+    CELL_RANGE = 'K1'
+    new_worksheet.update_value(CELL_RANGE, "是否邀約K大\n⭐(必填)")
+    new_worksheet.set_data_validation(start="K2", end="K2000",
+                                    condition_type="ONE_OF_LIST",
+                                    condition_values=['成功邀約K大', '客戶拒絕邀約(開車、開會、改天)',
+                                                      '未接(語音信箱、通話中、忙線中)',
+                                                      '號碼無效(空號)', '號碼無效(非本人)', '客戶退休/公司停業/轉職'],
+                                    inputMessage="請選擇是或否",  # error message
+                                    strict=True,  # reject invalid information
+                                    showCustomUi=True)  # drop down list
 
-CELL_RANGE = 'N1' 
+    CELL_RANGE = 'L1'
+    new_worksheet.update_value(CELL_RANGE, "即時通")
+    new_worksheet.set_data_validation(start="L2", end="L2000",
+                                    condition_type="ONE_OF_LIST",
+                                    condition_values=['即時通'],
+                                    inputMessage="請選擇是否為即時通",  # error message
+                                    strict=True,  # reject invalid information
+                                    showCustomUi=True)  # drop down list
 
-new_worksheet.update_value(CELL_RANGE, "備註\n(客戶需求)\n更改電話/更改地址")
+    CELL_RANGE = 'M1'
+    new_worksheet.update_value(CELL_RANGE,
+                              "K大邀約日期時間\n⭐若成功邀約(必填)\n範例：2024-04-01 09:00(日期跟時間中間要空一格)")
+
+    CELL_RANGE = 'N1'
+    new_worksheet.update_value(CELL_RANGE, "備註\n(客戶需求)\n更改電話/更改地址")
+
+    new_worksheet.apply_format("A1:I1",
+                              {"textFormat": {"fontSize": "12", "bold": "True"},
+                               "horizontalAlignment": "CENTER",
+                               "verticalAlignment": "MIDDLE",
+                               "backgroundColorStyle":
+                                   {"rgbColor":
+                                        {"red": 255 / 255, "blue": 204 / 255, "green": 255 / 255}}})
+
+    new_worksheet.apply_format("J1:J1",
+                              {"textFormat": {"fontSize": "12", "bold": "True"},
+                               "horizontalAlignment": "CENTER",
+                               "verticalAlignment": "MIDDLE",
+                               "backgroundColorStyle":
+                                   {"rgbColor":
+                                        {"red": 224 / 255, "blue": 0 / 255, "green": 0 / 255}}})
+
+    new_worksheet.apply_format("K1:M1",
+                              {"textFormat": {"fontSize": "12", "bold": "True"},
+                               "horizontalAlignment": "CENTER",
+                               "verticalAlignment": "MIDDLE",
+                               "backgroundColorStyle":
+                                   {"rgbColor":
+                                        {"red": 182 / 255, "blue": 168 / 255, "green": 215 / 255}}})
+
+    new_worksheet.apply_format("N1:N1",
+                              {"textFormat": {"fontSize": "12", "bold": "True"},
+                               "horizontalAlignment": "CENTER",
+                               "verticalAlignment": "MIDDLE",
+                               "backgroundColorStyle":
+                                   {"rgbColor":
+                                        {"red": 253 / 255, "blue": 102 / 255, "green": 217 / 255}}})
+
+    new_worksheet.adjust_row_height(start=2, end=2000, pixel_size=20)
+    new_worksheet.adjust_column_width(start=1, end=20, pixel_size=150)
+    new_worksheet.adjust_column_width(start=4, end=4, pixel_size=180)
+    new_worksheet.adjust_column_width(start=13, end=13, pixel_size=380)
 
 
-new_worksheet.apply_format("A1:I1",
-                {"textFormat": {"fontSize": "12", "bold": "True"},
-                "horizontalAlignment": "CENTER",
-                "verticalAlignment": "MIDDLE",
-                "backgroundColorStyle": 
-                {"rgbColor":
-                  {"red": 255/255, "blue": 204/255, "green": 255/255}}})
-    
-new_worksheet.apply_format("J1:J1",
-                {"textFormat": {"fontSize": "12", "bold": "True"},
-                "horizontalAlignment": "CENTER",
-                "verticalAlignment": "MIDDLE",
-                "backgroundColorStyle": 
-                {"rgbColor":
-                  {"red": 224/255, "blue": 0/255, "green": 0/255}}})
-    
-new_worksheet.apply_format("K1:M1",
-                {"textFormat": {"fontSize": "12", "bold": "True"},
-                "horizontalAlignment": "CENTER",
-                "verticalAlignment": "MIDDLE",
-                "backgroundColorStyle": 
-                {"rgbColor":
-                  {"red": 182/255, "blue": 168/255, "green": 215/255}}})
-    
-new_worksheet.apply_format("N1:N1",
-                {"textFormat": {"fontSize": "12", "bold": "True"},
-                "horizontalAlignment": "CENTER",
-                "verticalAlignment": "MIDDLE",
-                "backgroundColorStyle": 
-                {"rgbColor":
-                  {"red": 253/255, "blue": 102/255, "green": 217/255}}})
+# Check if protection is already enabled before applying
+    drange = pygsheets.datarange.DataRange(start='A1', end='I2000', worksheet=new_worksheet)
+    if not drange.protected:  # Only protect if it's not already protected
+        drange.requesting_user_can_edit = False
+        drange.protected = True
+        drange.editors = ('users', ["kedingsd@gmail.com",
+                                    "pyhton-gsheet-insert@lithe-sonar-395510.iam.gserviceaccount.com",
+                                    "loren.weilun@gmail.com",
+                                    "kevinjyaes09@gmail.com",
+                                    "a5102933@gmail.com",
+                                    "k-229-714@onyx-sphere-376703.iam.gserviceaccount.com",
+                                    "strawberry52307@gmail.com"])
 
+# Check if the new worksheet is empty and delete it if it is
+try:
+    new_worksheet = spreadsheet.worksheet_by_title(new_worksheet_title)
+    # Get values from B2 to K10
+    data_check = new_worksheet.get_values('B2', 'K10', returnas='matrix')
 
-new_worksheet.adjust_row_height(start=2, end=2000, pixel_size=20)
-new_worksheet.adjust_column_width(start=1, end=20, pixel_size=150)
-new_worksheet.adjust_column_width(start=4, end=4, pixel_size=180)
-new_worksheet.adjust_column_width(start=13, end=13, pixel_size=380)
+     # Check if all values are empty strings
+    if all(all(cell == '' for cell in row) for row in data_check):
+        spreadsheet.del_worksheet(new_worksheet)
+        print(f"Worksheet '{new_worksheet_title}' was empty and has been deleted.")
+    else:
+        print(f"Worksheet '{new_worksheet_title}' processed.")
 
-drange = pygsheets.datarange.DataRange(start='A1', end='I2000', worksheet=new_worksheet)
-drange.requesting_user_can_edit = False
-drange.protected = True
-drange.editors = ('users', ["kedingsd@gmail.com",
-                            "pyhton-gsheet-insert@lithe-sonar-395510.iam.gserviceaccount.com",
-                            "loren.weilun@gmail.com",
-                            "kevinjyaes09@gmail.com",
-                            "a5102933@gmail.com",
-                            "k-229-714@onyx-sphere-376703.iam.gserviceaccount.com",
-                            "strawberry52307@gmail.com"])
+except pygsheets.WorksheetNotFound:
+     print(f"Worksheet '{new_worksheet_title}' not found during deletion check. Likely already handled.")
 
-K_invite6.to_excel("/Users/wenbinyang/Desktop/job/last_K_invite.xlsx",index=False)
+except Exception as e:  # Catch other potential errors during deletion check
+    print(f"An error occurred: {e}")
 
+K_invite6.to_excel("/Users/wenbinyang/Desktop/job/last_K_invite.xlsx", index=False)
