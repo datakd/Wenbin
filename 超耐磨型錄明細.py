@@ -12,8 +12,8 @@ payload = {
     "client_id": "a037eace03d67c0f77a26e74edcde9a1",
     "client_secret": "c50f98b7f5c5d362d1bf6eb9d3447692",
     "redirect_uri": "https://crm-p10.xiaoshouyi.com",
-    "username": "11020856@twkd.com",
-    "password": "11020856zAOdbVRj"
+    "username": "tw0002@twkd.com.cn",
+    "password": "Ywb314775877MoylQRYl"
 }
 
 response = requests.post(url, data=payload)
@@ -52,29 +52,29 @@ while True:
         break
     queryLocator = crm['queryLocator']
     
-'''
-關聯客戶
-'''
-connection = pymysql.connect(
-        host='192.168.1.253',  # 数据库地址
-        port=3307,
-        user='DATeam',          # 用户名
-        password='Dateam@1234', # 密码
-        database='db01',        # 数据库名称
-        charset='utf8'       # 字符编码
-    )
-cursor = connection.cursor()
+# '''
+# 關聯客戶
+# '''
+# connection = pymysql.connect(
+#         host='192.168.1.253',  # 数据库地址
+#         port=3307,
+#         user='DATeam',          # 用户名
+#         password='Dateam@1234', # 密码
+#         database='db01',        # 数据库名称
+#         charset='utf8'       # 字符编码
+#     )
+# cursor = connection.cursor()
 
 
-cursor.execute("SELECT COMPANYID,RELATED_FINAL FROM related_company ")
+# cursor.execute("SELECT COMPANYID,RELATED_FINAL FROM related_company ")
 
-results = cursor.fetchall()
-related_company = pd.DataFrame(results)
-related_company.columns = ["公司代號", "RELATED_FINAL"]
-first_df = pd.merge(info_df, related_company ,on ='公司代號',how='left')
-first_df['公司代號'] = first_df['RELATED_FINAL']
-first_df = first_df.drop_duplicates(subset=['公司代號'], keep='first')
-
+# results = cursor.fetchall()
+# related_company = pd.DataFrame(results)
+# related_company.columns = ["公司代號", "RELATED_FINAL"]
+# first_df = pd.merge(info_df, related_company ,on ='公司代號',how='left')
+# first_df['公司代號'] = first_df['RELATED_FINAL']
+# first_df = first_df.drop_duplicates(subset=['公司代號'], keep='first')
+first_df = info_df.drop_duplicates(subset=['公司代號'], keep='first')
 
 '''
 find needed account info
@@ -362,6 +362,7 @@ first_df['聯絡人電話重複'] = first_df.duplicated(subset=['手機號碼'],
 # drop_contact = drop_office.drop_duplicates(subset=['主要聯絡人代號'], keep='first')
 # drop_contact = drop_contact[drop_contact['主要聯絡人代號']!='']
 first_df['無主要聯絡人代號'] = (first_df['主要聯絡人代號'] == '') 
+
 
 '''
 聯絡人離職
