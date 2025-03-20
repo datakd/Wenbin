@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 
 def process_file(file_path, output_lines):
     """處理單個檔案，提取並格式化數據，並處理卡號長度。"""
@@ -69,3 +70,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
