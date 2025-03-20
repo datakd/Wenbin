@@ -207,13 +207,13 @@ Sales_list = Sales_list[Sales_list['預估通數']>0]
 #指定人員指定交辦數量
 
 target_sales = {
-    '葉子瑄': 140,
-    '黃譯萱': 100,
-    '吳承遠': 140,
-    '黃紹誠': 140,
-    '劉冠宏': 140,
-    '李瑜瑩': 80,
-    '張淇雁': 80,
+    '葉子瑄': 60,
+    '黃譯萱': 60,
+    '吳承遠': 60,
+    '黃紹誠': 60,
+    '劉冠宏': 60,
+    '李瑜瑩': 60,
+    '張淇雁': 60,
     '賴盈豪': 60
 }
 
@@ -328,6 +328,7 @@ K_invite = K_invite.rename(columns={'dimDepart_x':'dimDepart','id_y':'customItem
 K_invite['customItem120__c'] = today
 Tasks_df1 = Tasks_df[~Tasks_df['customItem42__c'].isin(K_invite['customItem42__c'].drop_duplicates())]
 K_invite['customItem10__c'].value_counts()
+Tasks_df['電訪人員'].value_counts()
 
 # balanced_list = np.tile(Sales_list1['電訪人員'], -(-len(Tasks_df2) // len(Sales_list1)))  # Repeat and cover all rows
 # np.random.shuffle(balanced_list)  # Shuffle for randomness
@@ -396,21 +397,21 @@ K_invite_task['customItem10__c'].value_counts()
 
 
 ##########補名單
-#Tasks_df1 = pd.read_excel("Z:/28_數據中心部/如苾/last_寄後_invite.xlsx", dtype='object')
-Tasks_df1= Tasks_df.loc[~Tasks_df['區域代碼'].str.contains("Z")]
-Tasks_df1 = Tasks_df
+# #Tasks_df1 = pd.read_excel("Z:/28_數據中心部/如苾/last_寄後_invite.xlsx", dtype='object')
+# Tasks_df1= Tasks_df.loc[~Tasks_df['區域代碼'].str.contains("Z")]
+# Tasks_df1 = Tasks_df
 
-Tasks_df2 = Tasks_df1[:14]
-Tasks_df1 = Tasks_df1[~Tasks_df1['customItem42__c'].isin(Tasks_df2['customItem42__c'].drop_duplicates())]
-Tasks_df2['電訪人員'] = '張淇雁'
-K_invite_task = pd.merge(Tasks_df2, user_df, left_on = '電訪人員', right_on = 'name', how = 'left')
-K_invite_task.rename(columns={'id_y': 'customItem10__c'}, inplace=True)
-K_invite_task['customItem120__c'] = today
-K_invite_task = K_invite_task[['customItem42__c','entityType','customItem120__c','customItem3__c','customItem121__c',
-                      'customItem10__c','dimDepart','customItem11__c','customItem115__c', 'customItem45__c',
-                      'customItem152__c','customItem57__c','customItem59__c','customItem153__c','customItem157__c','customItem39__c']]
-K_invite_task = K_invite_task[K_invite_task['customItem42__c'].notnull()]
-K_invite_task = K_invite_task.astype(str)
+# Tasks_df2 = Tasks_df1[:14]
+# Tasks_df1 = Tasks_df1[~Tasks_df1['customItem42__c'].isin(Tasks_df2['customItem42__c'].drop_duplicates())]
+# Tasks_df2['電訪人員'] = '張淇雁'
+# K_invite_task = pd.merge(Tasks_df2, user_df, left_on = '電訪人員', right_on = 'name', how = 'left')
+# K_invite_task.rename(columns={'id_y': 'customItem10__c'}, inplace=True)
+# K_invite_task['customItem120__c'] = today
+# K_invite_task = K_invite_task[['customItem42__c','entityType','customItem120__c','customItem3__c','customItem121__c',
+#                       'customItem10__c','dimDepart','customItem11__c','customItem115__c', 'customItem45__c',
+#                       'customItem152__c','customItem57__c','customItem59__c','customItem153__c','customItem157__c','customItem39__c']]
+# K_invite_task = K_invite_task[K_invite_task['customItem42__c'].notnull()]
+# K_invite_task = K_invite_task.astype(str)
 
 '''
 ask bulk id
