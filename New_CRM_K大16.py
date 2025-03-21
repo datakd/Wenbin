@@ -872,7 +872,9 @@ K_invite6.to_excel("/Users/wenbinyang/Desktop/job/last_K_invite.xlsx",index=Fals
 # K_invite_task = K_invite_task[['customItem42__c','entityType','customItem120__c','customItem3__c','customItem121__c','customItem10__c','dimDepart','customItem11__c','customItem115__c','customItem206__c']]
 # K_invite_task = K_invite_task.astype(str)
 
-# K_invite_task = K_invite_task.head(2)
+K_invite_task 
+
+
 '''
 ask bulk id
 '''
@@ -1000,10 +1002,10 @@ Tasks_df = pd.DataFrame()
 while True:
     data = {
         "xoql": f'''
-        select id,name, customItem10__c, customItem3__c, approvalStatus
+        select id,name, customItem42__c,customItem10__c, customItem3__c, approvalStatus,entityType
         
         from customEntity14__c 
-        where entityType = '3028348436713387' and createdAt >= {timestamp}
+        where entityType in ('2904963933786093','3028348436713387') and createdAt >= {timestamp}
         ''',
         "batchCount": 2000,
         "queryLocator": queryLocator
@@ -1019,7 +1021,19 @@ while True:
     
 Tasks_df['approvalStatus']= Tasks_df['approvalStatus'].astype(str)
 Tasks_df = Tasks_df.loc[Tasks_df['approvalStatus'].str.contains("待提交|撤回")] 
-                 
+
+
+value_counts = Tasks_df['customItem42__c'].value_counts()
+filtered_counts = value_counts[value_counts > 1]
+result_df = filtered_counts.reset_index()
+result_df.columns = ['customItem42__c', 'count']
+print(result_df)
+
+Tasks_df_sorted = Tasks_df.sort_values(by='entityType', ascending=True)
+
+Tasks_df = Tasks_df_sorted.drop_duplicates(subset='customItem42__c', keep='first')
+
+          
 '''
 submit_task
 '''
