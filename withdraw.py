@@ -73,6 +73,8 @@ Tasks_df1 = Tasks_df1.loc[~Tasks_df1['customItem121__c'].str.contains("已邀約
 Tasks_df1 = Tasks_df1.loc[~Tasks_df1['customItem3__c'].str.contains("K大視訊|已邀約")] 
 Tasks_df1['customItem65__c']= Tasks_df1['customItem65__c'].astype(str)
 Tasks_df1 = Tasks_df1.loc[~Tasks_df1['customItem65__c'].str.contains("已邀")] 
+#Tasks_df1 = Tasks_df1.loc[Tasks_df1['customItem3__c'].str.contains("已邀")] 
+
 #Tasks_df1 = Tasks_df1[Tasks_df1.duplicated(subset='客戶關係連絡人編號', keep=False)]
 #Tasks_df1 = Tasks_df1.drop_duplicates(subset=['客戶關係連絡人編號'], keep='last')
 #Tasks_df1 = pd.read_excel("C:/Users/11020856/Desktop/jupyter/70交辦管理-台灣_20240909103457649_廖珮均.xlsx", dtype='object')

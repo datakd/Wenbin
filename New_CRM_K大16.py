@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pygsheets
 import numpy as np
 
-date_to_convert = datetime(2024,12, 1)
+date_to_convert = datetime(2025,1, 1)
 timestamp = int(date_to_convert.timestamp() * 1000)
 target = ['經營客戶']
 

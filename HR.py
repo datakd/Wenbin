@@ -69,3 +69,77 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+##################
+
+import pandas as pd
+import os
+
+def process_excel_file(file_path, output_lines):
+    """處理單個 Excel 檔案，提取並格式化數據。"""
+    try:
+        # 讀取 Excel 檔案，跳過標題行（如果有的話）
+        df = pd.read_excel(file_path, skiprows=1, header=None) # 從第二行開始讀,不要把第一行作為header
+
+        for _, row in df.iterrows():
+            try:
+                # 提取需要的欄位，注意索引從 0 開始
+                date_str = str(row[5])  # 日期
+                time_str = str(row[6])  # 時間
+                card_number = str(row[4])  # 用戶卡號
+
+                # 格式化日期
+                month = date_str[0:2]
+                day = date_str[3:5]
+                year = date_str[6:10]
+
+                # 格式化時間
+                formatted_time = time_str.replace(":", "")
+
+                # 處理卡號長度，通用補零
+                if len(card_number) < 10:
+                    card_number = card_number.zfill(10)
+                elif len(card_number)>10:
+                     print(f"警告：檔案 {file_path} 中發現異常卡號長度 ({len(card_number)})：{card_number}")  #卡號長度不等於10時發出警告
+                     continue
+
+                # 建立輸出行
+                output_line = "00" + year + month + day + formatted_time + card_number
+                output_lines.append(output_line)
+
+            except (IndexError, ValueError) as e:
+                print(f"在檔案 {file_path} 的某一行中發生錯誤: {e}，可能資料格式不正確，已跳過該行。")
+                continue
+
+    except FileNotFoundError:
+        print(f"檔案未找到: {file_path}")
+    except Exception as e:
+        print(f"處理檔案 {file_path} 時發生錯誤: {e}")
+
+
+def main():
+    """主函數，讀取檔案列表、處理檔案並寫入輸出檔案。"""
+    folder_path = r"C:\Users\TW0002\Desktop\打卡"  # 檔案夾路徑
+    output_file = "formatted_output.txt"  # 輸出檔案名
+    output_lines = []  # 用於存儲所有格式化後的行
+
+    # 遍歷資料夾中的所有 .xlsx 檔案
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".xlsx"):
+            file_path = os.path.join(folder_path, filename)
+            process_excel_file(file_path, output_lines)
+
+    # 將所有行寫入輸出檔案
+    with open(output_file, 'w', encoding='utf-8') as outfile:
+        for line in output_lines:
+            outfile.write(line + '\n')
+
+    print(f"處理完成，結果已保存到 {output_file}")
+
+
+if __name__ == "__main__":
+    main()
