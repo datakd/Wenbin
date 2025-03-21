@@ -57,7 +57,7 @@ def main():
     for file_path in file_paths:
         if os.path.exists(file_path):
             process_file(file_path, output_lines)
-        else:
+        else: 
             print("文件"+file_path+"不存在")
 
     # 將所有行寫入輸出檔案
